@@ -2,22 +2,68 @@ name: C/C++ CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "master" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "master" ]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
+    
     steps:
     - uses: actions/checkout@v4
-    - name: configure
-      run: cmake .
-    - name: make
-      run: make
-    - name: make check
-      run: make check
-    - name: make distcheck
-      run: make distcheck
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake
+    
+    - name: Configure with CMake
+      run: |
+        mkdir -p build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release
+    
+    - name: Build library
+      run: |
+        cd build
+        make -j$(nproc)
+    
+    - name: Build examples
+      run: |
+        cd build
+        make examples
+    
+    - name: Build tests
+      run: |
+        cd build
+        make tests
+    
+    - name: Run tests
+      run: |
+        cd build
+        ctest --output-on-failure || make test
+
+  build-makefile:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential
+    
+    - name: Build with Makefile
+      run: make library
+    
+    - name: Build examples
+      run: make examples
+    
+    - name: Build tests
+      run: make tests
+    
+    - name: Run tests
+      run: make test-all
+
