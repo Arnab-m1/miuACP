@@ -1,0 +1,10 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+# Find dependencies if any
+# find_dependency(SomeDependency REQUIRED)
+
+include("${CMAKE_CURRENT_LIST_DIR}/miuacpTargets.cmake")
+
+check_required_components(miuacp)
