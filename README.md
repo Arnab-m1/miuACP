@@ -1,4 +1,4 @@
-# µACP C++ Library
+# µACP Library
 
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/Arnab-m1/miuACP)
 [![C++](https://img.shields.io/badge/C%2B%2B-17-blue.svg)](https://en.cppreference.com/w/cpp/17)
@@ -8,6 +8,8 @@
 **µACP C++** is a lightweight, high-performance C++ implementation of the Micro Agent Communication Protocol, designed for edge-native multi-agent systems. It provides efficient message handling, protocol compliance, and easy integration into C++ applications.
 
 ## **Key Features**
+**Python Version:** The official Python implementation is available in the `python-lib` branch:  
+https://github.com/Arnab-m1/miuACP/tree/python-lib
 
 ### **Core Protocol**
 - **Fixed 8-byte header** for maximum efficiency
