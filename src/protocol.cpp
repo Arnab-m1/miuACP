@@ -100,6 +100,7 @@ UACPMessage UACPProtocol::createObserve(const std::string& payload,
 }
 
 uint32_t UACPProtocol::generateMessageId() const {
+    std::lock_guard<std::mutex> lock(rng_mutex_);
     return msg_id_dist_(rng_);
 }
 

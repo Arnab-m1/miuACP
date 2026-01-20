@@ -15,6 +15,8 @@
 #include "enums.h"
 #include <vector>
 #include <cstdint>
+#include <stdexcept>
+#include <string>
 
 namespace miuacp {
 
@@ -81,12 +83,27 @@ public:
     uint32_t getMessageId() const { return msg_id_; }
     uint8_t getOptionsCount() const { return opts_count_; }
     
-    // Setters
-    void setVersion(uint8_t version) { version_ = version; }
+    // Setters with validation
+    void setVersion(uint8_t version) { 
+        if (version > Constants::PROTOCOL_VERSION) {
+            throw std::invalid_argument("Invalid version: must be <= " + std::to_string(Constants::PROTOCOL_VERSION));
+        }
+        version_ = version; 
+    }
     void setVerb(UACPVerb verb) { verb_ = verb; }
-    void setQoS(uint8_t qos) { qos_ = qos; }
+    void setQoS(uint8_t qos) { 
+        if (qos > 2) {
+            throw std::invalid_argument("Invalid QoS: must be 0, 1, or 2");
+        }
+        qos_ = qos; 
+    }
     void setCode(uint8_t code) { code_ = code; }
-    void setMessageId(uint32_t msg_id) { msg_id_ = msg_id; }
+    void setMessageId(uint32_t msg_id) { 
+        if (msg_id > Constants::MAX_MESSAGE_ID) {
+            throw std::invalid_argument("Invalid message ID: must be <= " + std::to_string(Constants::MAX_MESSAGE_ID));
+        }
+        msg_id_ = msg_id; 
+    }
     void setOptionsCount(uint8_t opts_count) { opts_count_ = opts_count; }
     
     /**

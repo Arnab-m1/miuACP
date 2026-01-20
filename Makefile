@@ -5,14 +5,14 @@ CXXFLAGS = -std=c++17 -Wall -Wextra -O2 -Iinclude
 LDFLAGS = -pthread
 
 # Source files
-SOURCES = src/option.cpp src/header.cpp src/message.cpp src/protocol.cpp
+SOURCES = src/option.cpp src/header.cpp src/message.cpp src/protocol.cpp src/client.cpp src/server.cpp src/agent.cpp
 OBJECTS = $(SOURCES:.cpp=.o)
 
 # Library name
 LIBRARY = libmiuacp.a
 
 # Example and test executables
-EXAMPLES = examples/basic_usage
+EXAMPLES = examples/basic_usage examples/smart_factory
 TESTS = tests/test_basic tests/test_comprehensive
 
 .PHONY: all clean library examples tests
@@ -30,6 +30,9 @@ $(LIBRARY): $(OBJECTS)
 examples: $(EXAMPLES)
 
 examples/basic_usage: examples/basic_usage.cpp $(LIBRARY)
+	$(CXX) $(CXXFLAGS) $< -L. -lmiuacp $(LDFLAGS) -o $@
+
+examples/smart_factory: examples/smart_factory.cpp $(LIBRARY)
 	$(CXX) $(CXXFLAGS) $< -L. -lmiuacp $(LDFLAGS) -o $@
 
 tests: $(TESTS)

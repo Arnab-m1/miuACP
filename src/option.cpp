@@ -112,17 +112,18 @@ size_t UACPOption::unpack(const std::vector<uint8_t>& data, size_t offset, UACPO
     std::vector<uint8_t> value(data.begin() + offset, data.begin() + offset + length);
     offset += length;
     
-    // Create option - try to detect if it's an integer or string
-    if (length == 4) {
-        // Try to create as integer first
-        try {
-            option = UACPOption(type, unpackInt(value, 0));
-        } catch (...) {
-            // If that fails, create as string
-            option = UACPOption(type, std::string(value.begin(), value.end()));
-        }
+    // Determine type based on option type, not value length
+    // Integer options: CONTENT_TYPE, MAX_AGE, PRIORITY, BLOCK
+    bool is_integer_option = (type == UACPOptionType::CONTENT_TYPE ||
+                              type == UACPOptionType::MAX_AGE ||
+                              type == UACPOptionType::PRIORITY ||
+                              type == UACPOptionType::BLOCK);
+    
+    if (is_integer_option && length == 4) {
+        // Create as integer for known integer option types with correct length
+        option = UACPOption(type, unpackInt(value, 0));
     } else {
-        // Create as string for non-4-byte values
+        // Create as string for all other options
         option = UACPOption(type, std::string(value.begin(), value.end()));
     }
     

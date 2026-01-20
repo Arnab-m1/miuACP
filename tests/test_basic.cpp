@@ -179,10 +179,10 @@ int main() {
         testProtocol();
         
         std::cout << std::endl;
-        std::cout << "🎉 All tests passed successfully!" << std::endl;
+        std::cout << "All tests passed successfully!" << std::endl;
         return 0;
     } catch (const std::exception& e) {
-        std::cerr << "❌ Test failed: " << e.what() << std::endl;
+        std::cerr << "Test failed: " << e.what() << std::endl;
         return 1;
     }
 }

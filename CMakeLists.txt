@@ -23,6 +23,9 @@ set(MIUACP_SOURCES
     src/header.cpp
     src/message.cpp
     src/protocol.cpp
+    src/client.cpp
+    src/server.cpp
+    src/agent.cpp
 )
 
 # Header files

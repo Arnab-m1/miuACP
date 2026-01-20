@@ -21,6 +21,7 @@
 #include <memory>
 #include <functional>
 #include <random>
+#include <mutex>
 
 namespace miuacp {
 
@@ -212,6 +213,7 @@ public:
 private:
     mutable std::mt19937 rng_;                     ///< Random number generator
     mutable std::uniform_int_distribution<uint32_t> msg_id_dist_;  ///< Message ID distribution
+    mutable std::mutex rng_mutex_;                 ///< Mutex for thread-safe RNG access
     
     /**
      * @brief Initialize random number generator

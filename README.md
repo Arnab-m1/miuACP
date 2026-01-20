@@ -7,6 +7,13 @@
 
 **µACP C++** is a lightweight, high-performance C++ implementation of the Micro Agent Communication Protocol, designed for edge-native multi-agent systems. It provides efficient message handling, protocol compliance, and easy integration into C++ applications.
 
+## **What's New**
+
+- **Smart Factory Example**: A complete BDI multi-agent system demonstrating real-world IoT manufacturing with 5 agents
+- **Resource Constraints**: Agents have RAM, energy, storage, and compute limits simulating edge devices
+- **Network Discovery**: Agents discover peers dynamically with variable latency simulation
+- **Conversation Tracking**: Messages include IDs, QoS levels, and conversation IDs for tracing
+
 ## **Key Features**
 **Python Version:** The official Python implementation is available in the `python-lib` branch:  
 https://github.com/Arnab-m1/miuACP/tree/python-lib
@@ -40,7 +47,7 @@ https://github.com/Arnab-m1/miuACP/tree/python-lib
 ```bash
 # Clone the repository
 git clone https://github.com/Arnab-m1/miuACP.git
-cd miuACP/miuACP-c
+cd miuACP
 
 # Create build directory
 mkdir build && cd build
@@ -358,34 +365,49 @@ The C++ implementation provides excellent performance:
 
 ## **Examples**
 
-### **Running Examples**
+### **Smart Factory Simulation**
+
+A complete multi-agent BDI system simulating IoT manufacturing with 5 agents:
 
 ```bash
-# Build examples
-cd build
-make basic_usage
-
-# Run basic usage example
-./bin/basic_usage
+# Build and run
+make examples
+./examples/smart_factory
 ```
 
-### **Example Output**
-```
-µACP C++ Library - Basic Usage Example
-=====================================
-Library Version: 1.0.0
-Author: Arnab
+**Agents:**
+| Agent | Role | Resource Profile |
+|-------|------|------------------|
+| ProductionManager | Coordinator | High RAM (128KB), 1000mAh |
+| InventoryAgent | Storage | High storage (1024KB) |
+| RobotArmAgent | Actuator | High energy (2000mAh), 500 MIPS |
+| QualityControl | Inspector | High compute (300 MIPS) |
+| MaintenanceAgent | Monitor | Low-power (400mAh, 80 MIPS) |
 
-Example 1: PING Message
-----------------------
-Message Info:
-  Verb: 0
-  Message ID: 12345
-  QoS: 0
-  Code: 0
-  Options Count: 0
-  Payload Size: 0 bytes
-  Total Size: 8 bytes
+**Features Demonstrated:**
+- Agent discovery with network latency (10-50ms)
+- Conversation ID tracking
+- Message IDs and QoS levels (0-2)
+- BDI architecture (Beliefs, Desires, Intentions)
+- Resource consumption tracking
+
+**Sample Output:**
+```
+[16:32:59] ProductionManager: Conversation ID: prod-49f77243
+[16:32:59] ProductionManager: MSG → inventory | ASK | ID:13431784 | QoS:1
+[16:32:59] RobotArmAgent: Step 7: Final positioning complete
+[16:32:59] RobotArmAgent: Assembly sequence completed!
+
+══════════════════════════════════════════════
+                    SIMULATION COMPLETE                        
+══════════════════════════════════════════════
+```
+
+### **Basic Usage**
+
+```bash
+make examples
+./examples/basic_usage
 ```
 
 ## **Development**
