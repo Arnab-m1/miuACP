@@ -18,16 +18,6 @@
 - 📊 **Built-in Stats**: Track messages, bytes, and peer connections
 - 🧪 **15/15 Tests Passing**: Comprehensive test coverage
 
-### Architecture Comparison
-
-| Aspect | v1.0 (Client/Server) | v2.0 (P2P) |
-|--------|---------------------|------------|
-| Model | Asymmetric | **Symmetric** |
-| Components | UACPClient + UACPServer | **UACPAgent only** |
-| Communication | Client → Server | **Agent ↔ Agent** |
-| Discovery | Manual config | **UDP Broadcast** |
-| Transport | TCP only | **Abstracted (UDP/TCP)** |
-
 ---
 
 ## 📋 Table of Contents
