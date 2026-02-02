@@ -23,9 +23,9 @@ set(MIUACP_SOURCES
     src/header.cpp
     src/message.cpp
     src/protocol.cpp
-    src/client.cpp
-    src/server.cpp
+    src/udp_transport.cpp
     src/agent.cpp
+    # Note: client.cpp and server.cpp are deprecated in favor of P2P agent
 )
 
 # Header files
@@ -36,6 +36,9 @@ set(MIUACP_HEADERS
     include/miuacp/option.h
     include/miuacp/message.h
     include/miuacp/protocol.h
+    include/miuacp/transport.h
+    include/miuacp/udp_transport.h
+    include/miuacp/agent.h
 )
 
 # Create static library

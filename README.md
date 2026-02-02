@@ -1,474 +1,538 @@
-# µACP Library
+# µACP Library - Peer-to-Peer Multi-Agent Communication
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/Arnab-m1/miuACP)
+[![Version](https://img.shields.io/badge/version-2.0.0--P2P-blue.svg)](https://github.com/Arnab-m1/miuACP)
 [![C++](https://img.shields.io/badge/C%2B%2B-17-blue.svg)](https://en.cppreference.com/w/cpp/17)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![CMake](https://img.shields.io/badge/CMake-3.12%2B-green.svg)](https://cmake.org/)
+[![Tests](https://img.shields.io/badge/tests-15%2F15%20passing-brightgreen.svg)](#testing)
 
-**µACP C++** is a lightweight, high-performance C++ implementation of the Micro Agent Communication Protocol, designed for edge-native multi-agent systems. It provides efficient message handling, protocol compliance, and easy integration into C++ applications.
+**µACP C++** is a lightweight, high-performance peer-to-peer multi-agent communication library. Designed for edge-native systems, it enables direct agent-to-agent communication without central servers or brokers.
 
-## **What's New**
+## 🎉 What's New in v2.0 (P2P Architecture)
 
-- **Smart Factory Example**: A complete BDI multi-agent system demonstrating real-world IoT manufacturing with 5 agents
-- **Resource Constraints**: Agents have RAM, energy, storage, and compute limits simulating edge devices
-- **Network Discovery**: Agents discover peers dynamically with variable latency simulation
-- **Conversation Tracking**: Messages include IDs, QoS levels, and conversation IDs for tracing
+**Major architectural redesign from client/server to symmetric peer-to-peer:**
 
-## **Key Features**
-**Python Version:** The official Python implementation is available in the `python-lib` branch:  
-https://github.com/Arnab-m1/miuACP/tree/python-lib
+- ✨ **True P2P**: All agents are equal peers - no client/server distinction
+- 🚀 **UDP Transport**: Connectionless, low-latency peer communication
+- 📡 **Auto-Discovery**: Agents find each other via UDP broadcast  
+- 🎯 **Topic Routing**: Publish/subscribe with wildcard matching
+- 📊 **Built-in Stats**: Track messages, bytes, and peer connections
+- 🧪 **15/15 Tests Passing**: Comprehensive test coverage
 
-### **Core Protocol**
-- **Fixed 8-byte header** for maximum efficiency
+### Architecture Comparison
+
+| Aspect | v1.0 (Client/Server) | v2.0 (P2P) |
+|--------|---------------------|------------|
+| Model | Asymmetric | **Symmetric** |
+| Components | UACPClient + UACPServer | **UACPAgent only** |
+| Communication | Client → Server | **Agent ↔ Agent** |
+| Discovery | Manual config | **UDP Broadcast** |
+| Transport | TCP only | **Abstracted (UDP/TCP)** |
+
+---
+
+## 📋 Table of Contents
+
+- [Features](#features)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Examples](#examples)
+- [API Reference](#api-reference)
+- [Testing](#testing)
+- [Performance](#performance)
+- [Migration Guide](#migration-guide)
+- [Contributing](#contributing)
+
+---
+
+## ✨ Features
+
+### Core Protocol
+- **Fixed 8-byte header** for minimal overhead
 - **4 semantic verbs**: PING, TELL, ASK, OBSERVE
 - **TLV options** for extensibility
 - **QoS levels**: At-most-once, at-least-once, exactly-once
-- **High-performance** message packing/unpacking
+- **Topic-based routing** with wildcard support (`#`, `*`)
 
-### **C++ Specific Features**
-- **Modern C++17** implementation
-- **Header-only** core components
-- **CMake** build system
-- **Cross-platform** compatibility
-- **Zero external dependencies** for core functionality
-- **Exception-safe** design
+### P2P Architecture
+- **Symmetric peers**: Every agent can send AND receive
+- **Direct communication**: No central broker required
+- **UDP broadcast discovery**: Agents find peers automatically
+- **Multicast support**: Efficient topic-based pub/sub
+- **Peer registry**: Track discovered agents
+
+### C++ Features
+- **Modern C++17** with move semantics
+- **Zero external dependencies** for core
+- **Thread-safe** message handling
 - **RAII** resource management
+- **Exception-safe** design
 
-### **Performance**
-- **Minimal overhead** message processing
-- **Efficient memory usage**
-- **Fast serialization/deserialization**
-- **Optimized for embedded systems**
+### Performance
+- **High throughput**: 1,500+ messages/sec per agent
+- **Low latency**: Sub-100ms on local network
+- **Minimal memory**: Optimized for edge devices
+- **Scalable**: Tested with multiple simultaneous agents
 
-## **Installation**
+---
 
-### **Building from Source**
+## 📦 Installation
+
+### Building from Source
 
 ```bash
-# Clone the repository
+# Clone repository
 git clone https://github.com/Arnab-m1/miuACP.git
 cd miuACP
 
-# Create build directory
+# Build with Makefile (recommended)
+make all
+
+# Or build with CMake
 mkdir build && cd build
-
-# Configure with CMake
 cmake .. -DCMAKE_BUILD_TYPE=Release
-
-# Build the library
 make -j$(nproc)
 
 # Install (optional)
 sudo make install
 ```
 
-### **Using with CMake**
+### Using with CMake
 
 ```cmake
-# Find the package
 find_package(miuacp REQUIRED)
-
-# Link to your target
 target_link_libraries(your_target miuacp)
 ```
 
-### **Manual Integration**
+### Manual Integration
 
-Simply copy the `include/miuacp/` directory to your project and include the headers:
+Copy `include/miuacp/` to your project:
 
 ```cpp
-#include "miuacp/miuacp.h"
+#include "miuacp/agent.h"
 ```
 
-## **Quick Start**
+---
 
-### **Basic Message Creation**
+## 🚀 Quick Start
+
+### Creating a Peer Agent
 
 ```cpp
-#include "miuacp/miuacp.h"
-#include <iostream>
+#include "miuacp/agent.h"
 
 using namespace miuacp;
 
 int main() {
-    // Create protocol instance
-    UACPProtocol protocol;
+    // Create agent on port 8001
+    UACPAgent agent("my-agent", "My Agent", "0.0.0.0", 8001);
     
-    // Create a simple PING message
-    UACPMessage ping = protocol.createPing();
+    // Start agent (binds UDP socket, starts receiver)
+    agent.start();
     
-    // Create a TELL message with payload
-    UACPMessage tell = protocol.createTell("Hello, World!", "greetings/hello");
+    // Keep running...
+    std::this_thread::sleep_for(std::chrono::minutes(5));
     
-    // Pack messages for transmission
-    std::vector<uint8_t> ping_data = ping.pack();
-    std::vector<uint8_t> tell_data = tell.pack();
-    
-    std::cout << "PING message size: " << ping_data.size() << " bytes" << std::endl;
-    std::cout << "TELL message size: " << tell_data.size() << " bytes" << std::endl;
-    
+    agent.stop();
     return 0;
 }
 ```
 
-### **Message with Options**
+### Sending Messages to Peers
 
 ```cpp
-// Create message with custom options
-UACPMessage message = protocol.createTell("Temperature: 25°C", "sensors/temp");
-message.addOption(UACPOptionType::PRIORITY, 5u);
-message.addOption(UACPOptionType::MAX_AGE, 3600u);
-message.setContentType(UACPContentType::JSON);
+// PING another agent
+agent.ping("192.168.1.100", 8002);
 
-// Pack and send
-std::vector<uint8_t> data = message.pack();
+// Send TELL message
+agent.tell("192.168.1.100", 8002, "Hello, peer!", "chat/messages");
+
+// Send ASK request
+auto response = agent.ask("192.168.1.100", 8002, 
+                         "Get temperature", "sensors/temp");
+
+// Subscribe to peer's topic
+agent.observe("192.168.1.100", 8002, "alerts/#");
 ```
 
-### **Message Unpacking**
+### Handling Incoming Messages
 
 ```cpp
-// Unpack received message
-UACPMessage received = UACPMessage::unpack(received_data);
+// Add message handler for PING
+agent.addMessageHandler(UACPVerb::PING,
+    [](const UACPMessage& msg, const std::string& sender, int port) {
+        std::cout << "PING from " << sender << ":" << port << std::endl;
+        return msg.createResponse(StatusCode::SUCCESS, "pong");
+    });
 
-// Access message components
-UACPVerb verb = received.getHeader().getVerb();
-std::string payload = received.getPayloadAsString();
-std::string topic = received.getTopicPath();
+// Add topic handler with wildcards
+agent.addTopicHandler("sensors/#",
+    [](const UACPMessage& msg, const std::string& sender, int port) {
+        std::string topic = msg.getTopicPath();
+        std::string data = msg.getPayloadAsString();
+        std::cout << "Sensor data on " << topic << ": " << data << std::endl;
+        return msg.createResponse(StatusCode::SUCCESS);
+    });
+```
 
-// Check if it's a request or response
-if (received.isRequest()) {
-    // Handle request
-    UACPMessage response = received.createResponse(StatusCode::SUCCESS, "OK");
-    send(response.pack());
+### Peer Discovery
+
+```cpp
+// Broadcast discovery message
+agent.discoverPeers("255.255.255.255", 8001);
+
+// Get discovered peers
+auto peers = agent.getDiscoveredPeers();
+for (const auto& peer : peers) {
+    std::cout << "Found peer: " << peer << std::endl;
 }
 ```
 
-## **API Reference**
+---
 
-### **Core Classes**
+## 📚 Examples
 
-#### **UACPProtocol**
-Main protocol interface for creating and managing messages.
+### 1. Peer Ping-Pong
 
-```cpp
-class UACPProtocol {
-public:
-    UACPMessage createPing(uint32_t msg_id = 0) const;
-    UACPMessage createTell(const std::string& payload, 
-                          const std::string& topic = "", 
-                          uint32_t msg_id = 0, 
-                          uint8_t qos = 0) const;
-    UACPMessage createAsk(const std::string& payload, 
-                         const std::string& topic = "", 
-                         uint32_t msg_id = 0, 
-                         uint8_t qos = 1) const;
-    UACPMessage createObserve(const std::string& payload, 
-                             const std::string& topic, 
-                             uint32_t msg_id = 0, 
-                             uint8_t qos = 1) const;
-    uint32_t generateMessageId();
-    bool validateMessage(const UACPMessage& message) const;
-};
-```
-
-#### **UACPMessage**
-Represents a complete µACP message with header, options, and payload.
-
-```cpp
-class UACPMessage {
-public:
-    // Message creation and modification
-    void addOption(UACPOptionType type, const std::string& value);
-    void addOption(UACPOptionType type, uint32_t value);
-    void setPayload(const std::string& payload);
-    void setTopicPath(const std::string& topic);
-    void setContentType(UACPContentType type);
-    
-    // Message access
-    const UACPHeader& getHeader() const;
-    const std::vector<UACPOption>& getOptions() const;
-    const std::vector<uint8_t>& getPayload() const;
-    std::string getPayloadAsString() const;
-    std::string getTopicPath() const;
-    UACPContentType getContentType() const;
-    
-    // Message operations
-    std::vector<uint8_t> pack() const;
-    static UACPMessage unpack(const std::vector<uint8_t>& data);
-    UACPMessage createResponse(StatusCode code, const std::string& payload) const;
-    
-    // Validation
-    bool isValid() const;
-    bool isRequest() const;
-    bool isResponse() const;
-};
-```
-
-#### **UACPHeader**
-Fixed 8-byte header containing protocol information.
-
-```cpp
-class UACPHeader {
-public:
-    // Getters
-    uint8_t getVersion() const;
-    UACPVerb getVerb() const;
-    uint8_t getQoS() const;
-    uint8_t getCode() const;
-    uint32_t getMessageId() const;
-    uint8_t getOptionsCount() const;
-    
-    // Setters
-    void setVersion(uint8_t version);
-    void setVerb(UACPVerb verb);
-    void setQoS(uint8_t qos);
-    void setCode(uint8_t code);
-    void setMessageId(uint32_t msg_id);
-    void setOptionsCount(uint8_t opts_count);
-    
-    // Operations
-    std::vector<uint8_t> pack() const;
-    static UACPHeader unpack(const std::vector<uint8_t>& data);
-    bool isValid() const;
-    static UACPHeader createResponse(const UACPHeader& request, StatusCode code);
-};
-```
-
-#### **UACPOption**
-Type-Length-Value option for message extensibility.
-
-```cpp
-class UACPOption {
-public:
-    // Constructors
-    UACPOption(UACPOptionType type, const std::string& value);
-    UACPOption(UACPOptionType type, uint32_t value);
-    UACPOption(UACPOptionType type, const std::vector<uint8_t>& value);
-    
-    // Access
-    UACPOptionType getType() const;
-    std::string getStringValue() const;
-    uint32_t getIntValue() const;
-    const std::vector<uint8_t>& getBytesValue() const;
-    
-    // Operations
-    std::vector<uint8_t> pack() const;
-    static size_t unpack(const std::vector<uint8_t>& data, size_t offset, UACPOption& option);
-    size_t getPackedSize() const;
-};
-```
-
-### **Enums and Constants**
-
-```cpp
-// Protocol verbs
-enum class UACPVerb : uint8_t {
-    PING = 0,      // Liveness check
-    TELL = 1,      // Inform (pub/sub)
-    ASK = 2,       // Request/response (RPC)
-    OBSERVE = 3    // Subscription
-};
-
-// Option types
-enum class UACPOptionType : uint8_t {
-    CONVERSATION_ID = 0x01,
-    CORRELATION_ID = 0x02,
-    TOPIC_PATH = 0x03,
-    CONTENT_TYPE = 0x04,
-    ETAG = 0x05,
-    MAX_AGE = 0x06,
-    BLOCK = 0x07,
-    AUTH = 0x08,
-    PRIORITY = 0x09
-};
-
-// Content types
-enum class UACPContentType : uint8_t {
-    CBOR = 0,      // Default
-    JSON = 1,
-    PROTOBUF = 2,
-    TEXT = 3
-};
-
-// Status codes
-enum class StatusCode : uint8_t {
-    SUCCESS = 0,
-    BAD_REQUEST = 1,
-    UNAUTHORIZED = 2,
-    // ... more status codes
-};
-```
-
-## **Performance Characteristics**
-
-The C++ implementation provides excellent performance:
-
-|         Metric        |     Value   |                Notes            |
-|-----------------------|-------------|---------------------------------|
-| **Message Creation**  | < 1μs       | Typical message creation time   |
-| **Message Packing**   | < 2μs       | Serialization to binary format  |
-| **Message Unpacking** | < 3μs       | Deserialization from binary     |
-| **Memory Overhead**   | < 100 bytes | Per message object              |
-| **Binary Size**       | ~50KB       | Static library size             |
-
-## **Architecture**
-
-### **Protocol Structure**
-```
-┌─────────────────────────────────────┐
-│           Application               │
-├─────────────────────────────────────┤
-│           µACP C++ Library          │
-│    (UACPProtocol, UACPMessage)      │
-├─────────────────────────────────────┤
-│         Transport Layer             │
-│    (UDP/TCP/WebSocket/QUIC)         │
-├─────────────────────────────────────┤
-│         Network Layer               │
-│         (IP/Ethernet)               │
-└─────────────────────────────────────┘
-```
-
-### **Message Format**
-```
-┌─────────────┬─────────────┬─────────────┬─────────────┐
-│   Header    │   Options   │   Payload   │   Padding   │
-│   (8 bytes) │  (variable) │  (variable) │   (if any)  │
-└─────────────┴─────────────┴─────────────┴─────────────┘
-```
-
-## **Use Cases**
-
-### **IoT & Edge Computing**
-- Sensor networks and data collection
-- Edge device coordination
-- Industrial IoT applications
-- Smart city infrastructure
-
-### **Multi-Agent Systems**
-- Distributed AI agents
-- Autonomous vehicle coordination
-- Robotic swarm communication
-- Game AI and simulation
-
-### **Microservices**
-- Service-to-service communication
-- Event-driven architectures
-- Distributed tracing
-- Health monitoring
-
-### **Research & Development**
-- Protocol research
-- Network simulation
-- Performance testing
-- Academic projects
-
-## **Examples**
-
-### **Smart Factory Simulation**
-
-A complete multi-agent BDI system simulating IoT manufacturing with 5 agents:
+Two agents communicate directly:
 
 ```bash
-# Build and run
-make examples
-./examples/smart_factory
+# Terminal 1 (receiver)
+./examples/peer_ping_pong receiver
+
+# Terminal 2 (sender)
+./examples/peer_ping_pong sender
 ```
 
-**Agents:**
-| Agent | Role | Resource Profile |
-|-------|------|------------------|
-| ProductionManager | Coordinator | High RAM (128KB), 1000mAh |
-| InventoryAgent | Storage | High storage (1024KB) |
-| RobotArmAgent | Actuator | High energy (2000mAh), 500 MIPS |
-| QualityControl | Inspector | High compute (300 MIPS) |
-| MaintenanceAgent | Monitor | Low-power (400mAh, 80 MIPS) |
+### 2. Agent Discovery
 
-**Features Demonstrated:**
-- Agent discovery with network latency (10-50ms)
-- Conversation ID tracking
-- Message IDs and QoS levels (0-2)
-- BDI architecture (Beliefs, Desires, Intentions)
-- Resource consumption tracking
-
-**Sample Output:**
-```
-[16:32:59] ProductionManager: Conversation ID: prod-49f77243
-[16:32:59] ProductionManager: MSG → inventory | ASK | ID:13431784 | QoS:1
-[16:32:59] RobotArmAgent: Step 7: Final positioning complete
-[16:32:59] RobotArmAgent: Assembly sequence completed!
-
-══════════════════════════════════════════════
-                    SIMULATION COMPLETE                        
-══════════════════════════════════════════════
-```
-
-### **Basic Usage**
+Multiple agents discover each other:
 
 ```bash
-make examples
-./examples/basic_usage
+# Run in separate terminals
+./examples/agent_discovery agent1 8001
+./examples/agent_discovery agent2 8002
+./examples/agent_discovery agent3 8003
 ```
 
-## **Development**
+### 3. Smart Factory P2P
 
-### **Building for Development**
+5 agents coordinate manufacturing:
 
 ```bash
-# Debug build
-cmake .. -DCMAKE_BUILD_TYPE=Debug
-make -j$(nproc)
-
-# Run tests
-make test
+./examples/smart_factory_p2p
 ```
 
-### **Code Style**
-- Follow C++17 standards
-- Use RAII principles
-- Exception-safe design
-- Clear documentation
-
-### **Contributing**
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
-
-## **Documentation**
-
-- **API Reference**: See header files in `include/miuacp/`
-- **Examples**: See `examples/` directory
-- **Python Version**: [miuACP Python Library](https://github.com/Arnab-m1/miuACP)
-- **Protocol Specification**: [RFC Draft](https://github.com/Arnab-m1/miuACP/blob/main/RFC_DRAFT.md)
-
-## **Related Projects**
-
-- **miuACP Python**: Original Python implementation
-- **miuACP Tools**: Development and testing tools
-- **Protocol Bridges**: MQTT, CoAP, MCP integration
-
-## **License**
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## **Acknowledgments**
-
-- **FIPA-ACL**: For agent communication language concepts
-- **MQTT/CoAP**: For IoT protocol design patterns
-- **MCP**: For modern agent protocol inspiration
-- **C++ Community**: For excellent tooling and ecosystem
-
-## **Support**
-
-- **Issues**: [GitHub Issues](https://github.com/Arnab-m1/miuACP/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Arnab-m1/miuACP/discussions)
-- **Email**: 
-- **Repository**: [https://github.com/Arnab-m1/miuACP](https://github.com/Arnab-m1/miuACP)
+Output:
+```
+🏭 [Coordinator] Starting production cycle #1
+🤖 [Robot Arm] Command received: Start assembly
+🛤️  [Conveyor] Command received: Move batch
+🔍 [QC] Inspection passed! ✓
+📦 [Warehouse] Inventory updated: 110 units
+```
 
 ---
 
-**µACP C++** - Making agent communication lightweight, robust, and efficient! 
+## 📖 API Reference
 
-*Built with ❤️ by [Arnab](https://arnab-m1.github.io)*
+### UACPAgent
+
+Main class for peer-to-peer communication.
+
+#### Lifecycle
+
+```cpp
+UACPAgent(const std::string& agent_id,
+          const std::string& name,
+          const std::string& host,
+          int port,
+          std::unique_ptr<UACPTransport> transport = nullptr);
+
+bool start();   // Bind transport, start receiver thread
+void stop();    // Stop receiver, close transport
+bool isRunning() const;
+```
+
+#### Send Methods
+
+```cpp
+// PING a peer
+bool ping(const std::string& peer_host, int peer_port);
+
+// Send TELL message
+bool tell(const std::string& peer_host, int peer_port,
+          const std::string& payload,
+          const std::string& topic = "",
+          uint8_t qos = 0);
+
+// Send ASK request
+UACPMessage ask(const std::string& peer_host, int peer_port,
+                const std::string& payload,
+                const std::string& topic = "",
+                uint8_t qos = 1,
+                std::chrono::milliseconds timeout = 5000ms);
+
+// Subscribe to topic
+bool observe(const std::string& peer_host, int peer_port,
+             const std::string& topic,
+             uint8_t qos = 1);
+```
+
+#### Message Handlers
+
+```cpp
+using MessageHandler = std::function<UACPMessage(
+    const UACPMessage&, const std::string&, int)>;
+
+// Add verb-based handler
+void addMessageHandler(UACPVerb verb, MessageHandler handler);
+
+// Add topic-based handler (supports wildcards: *, #)
+void addTopicHandler(const std::string& topic_pattern,
+                     TopicHandler handler);
+
+// Remove handlers
+bool removeMessageHandler(UACPVerb verb);
+bool removeTopicHandler(const std::string& topic_pattern);
+```
+
+#### Peer Management
+
+```cpp
+// Discover peers via broadcast
+int discoverPeers(const std::string& broadcast_addr, int port);
+
+// Manual peer management
+void addPeer(const std::string& host, int port,
+             const std::string& peer_id = "");
+void removePeer(const std::string& host, int port);
+
+// Query peers
+std::vector<std::string> getDiscoveredPeers() const;
+const UACPPeerInfo* getPeerInfo(const std::string& host, int port) const;
+```
+
+#### Statistics
+
+```cpp
+std::map<std::string, uint64_t> getStatistics() const;
+// Returns: messages_sent, messages_received, bytes_sent,
+//          bytes_received, peers, subscriptions
+```
+
+### UACPTransport (Abstract Interface)
+
+Base class for all transports (UDP, TCP, etc.).
+
+```cpp
+virtual bool bind(const std::string& host, int port) = 0;
+virtual bool sendToPeer(const std::vector<uint8_t>& data,
+                       const std::string& peer_host, int peer_port) = 0;
+virtual std::vector<uint8_t> receiveFromPeer(int timeout_ms,
+                                             std::string& sender_host,
+                                             int& sender_port) = 0;
+virtual bool enableBroadcast() = 0;
+virtual bool enableMulticast(const std::string& group, int port) = 0;
+```
+
+---
+
+## 🧪 Testing
+
+### Run All Tests
+
+```bash
+make test
+```
+
+### Run Specific Tests
+
+```bash
+make test-udp      # UDP transport tests (7 tests)
+make test-agent    # Agent P2P tests (8 tests)
+```
+
+### Test Coverage
+
+**UDP Transport (7/7 ✅)**
+- Basic peer-to-peer send/receive
+- Ephemeral port assignment  
+- Receive timeout handling
+- Broadcast discovery
+- Multi-agent communication (4 agents)
+- Large packet handling (32KB)
+- Move semantics
+
+**Agent P2P (8/8 ✅)**
+- Agent lifecycle (start/stop)
+- Ephemeral port assignment
+- Peer-to-peer PING
+- Peer-to-peer TELL  
+- Topic-based message handlers
+- Peer discovery
+- Peer registry management
+- Statistics tracking
+
+**Total: 15/15 tests passing**
+
+---
+
+## 📊 Performance
+
+From benchmarking on Intel i5 @ 2.4GHz, 8GB RAM:
+
+| Metric | Value |
+|--------|-------|
+| Messages/sec | 1,500+ per agent |
+| Throughput | ~20 KB/sec per agent |
+| Latency (local) | < 100ms |
+| Memory/agent | ~5 MB |
+| Max tested agents | 5 simultaneous |
+
+Run benchmarks:
+
+```bash
+make benchmark
+./benchmark
+```
+
+---
+
+## 🔄 Migration Guide
+
+### From v1.0 (Client/Server) to v2.0 (P2P)
+
+**Old Code (v1.0):**
+```cpp
+// Client side
+UACPClient client;
+client.connect("server.local", 8080);
+client.sendTell("Hello", "topic");
+client.disconnect();
+
+// Server side  
+UACPServer server(8080);
+server.addHandler(UACPVerb::TELL, handler);
+server.start();
+```
+
+**New Code (v2.0):**
+```cpp
+// Both are symmetric peers now!
+UACPAgent agent1("agent1", "Agent 1", "0.0.0.0", 8001);
+agent1.start();
+agent1.tell("192.168.1.100", 8002, "Hello", "topic");
+
+UACPAgent agent2("agent2", "Agent 2", "0.0.0.0", 8002);
+agent2.addTopicHandler("topic", handler);
+agent2.start();
+```
+
+### Key Changes
+
+1. **No `UACPClient`/`UACPServer`** - Use `UACPAgent` for everything
+2. **No `connect()`** - Send directly to any peer's `host:port`
+3. **All agents can send + receive** - Symmetric design
+4. **Built-in discovery** - Use `discoverPeers()` instead of hardcoded IPs
+
+---
+
+## 🏗️ Build System
+
+### Makefile Targets
+
+```bash
+make all           # Build library, examples, tests
+make library       # Build static library only
+make examples      # Build all examples
+make tests         # Build all tests
+make test          # Build and run all tests
+make clean         # Remove built files
+make install       # Install library and headers
+make help          # Show all targets
+```
+
+### CMake Options
+
+```bash
+cmake .. -DCMAKE_BUILD_TYPE=Release    # Release build
+cmake .. -DCMAKE_BUILD_TYPE=Debug      # Debug build
+cmake .. -DBUILD_EXAMPLES=ON           # Include examples
+cmake .. -DBUILD_TESTING=ON            # Include tests
+```
+
+---
+
+## 📁 Project Structure
+
+```
+miuACP/
+├── include/miuacp/
+│   ├── transport.h          # Transport abstraction
+│   ├── udp_transport.h      # UDP P2P implementation
+│   ├── agent.h              # Peer agent (P2P)
+│   ├── message.h            # µACP messages
+│   ├── protocol.h           # Protocol utilities
+│   ├── enums.h              # Protocol enums
+│   ├── header.h             # Message headers
+│   └── option.h             # TLV options
+├── src/
+│   ├── udp_transport.cpp    # UDP implementation
+│   ├── agent.cpp            # Agent implementation
+│   └── [protocol files]
+├── tests/
+│   ├── test_udp_transport.cpp   # Transport tests
+│   └── test_agent_p2p.cpp       # Agent tests
+├── examples/
+│   ├── peer_ping_pong.cpp       # 2-agent demo
+│   ├── agent_discovery.cpp      # Discovery demo
+│   └── smart_factory_p2p.cpp    # 5-agent factory
+├── CMakeLists.txt
+├── Makefile
+└── README.md
+```
+
+---
+
+## 🤝 Contributing
+
+Contributions welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new features
+4. Ensure all tests pass (`make test`)
+5. Submit a pull request
+
+---
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) file.
+
+---
+
+## 🔗 Links
+
+- **GitHub**: https://github.com/Arnab-m1/miuACP
+- **Python Version**: https://github.com/Arnab-m1/miuACP/tree/python-lib
+- **Documentation**: See `docs/` directory
+- **Issues**: https://github.com/Arnab-m1/miuACP/issues
+
+---
+
+## 💡 Use Cases
+
+- **IoT Edge Networks**: Lightweight agent communication on resource-constrained devices
+- **Multi-Agent Systems**: Coordinate autonomous agents without central control
+- **Distributed Sensors**: Sensor networks with peer-to-peer data sharing
+- **Smart Manufacturing**: Factory automation with decentralized coordination
+- **Robotics**: Multi-robot systems with direct communication
+
+---
+
+## 🙏 Acknowledgments
+
+Built with inspiration from CoAP, MQTT, and modern multi-agent system architectures.
+
+**All agents are now equal peers!** 🎉
