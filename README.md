@@ -11,21 +11,14 @@
 
 ## **✨ What's New in v2.0 - P2P Architecture**
 
-Version 2.0 introduces a **symmetric peer-to-peer (P2P) architecture**, replacing the traditional client/server model:
+Version 2.0 introduces a **symmetric peer-to-peer (P2P) architecture**:
 
 **🎯 Key Improvements:**
-- **Symmetric Agents**: All agents are equal peers - no client/server distinction
+- **Symmetric Agents**: All agents are equal peers
 - **Direct Communication**: Send to any peer without "connecting" first
 - **Transport Abstraction**: Pluggable transport layer (UDP, TCP, WebSocket, etc.)
 - **Peer Discovery**: Built-in UDP broadcast for automatic peer discovery
 - **Simpler API**: Cleaner, more intuitive methods
-
-**🔄 Migration Path:**
-```python
-# ❌ Old v1.0 (Client/Server)
-agent = UACPAgent("agent", port=8888)
-await agent.connect_to_agent("192.168.1.100", 8889)  # Must connect first!
-await agent.tell_agent("192.168.1.100", 8889, "topic", data)
 
 # ✅ New v2.0 (P2P)
 agent = UACPAgent("agent", port=8888)
