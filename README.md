@@ -7,11 +7,11 @@
 
 **µACP C++** is a lightweight, high-performance peer-to-peer multi-agent communication library. Designed for edge-native systems, it enables direct agent-to-agent communication without central servers or brokers.
 
-## 🎉 What's New in v2.0 (P2P Architecture)
+## 🎉 What's New in v2.0 
 
-**Major architectural redesign from client/server to symmetric peer-to-peer:**
+**Major architectural redesign:**
 
-- ✨ **True P2P**: All agents are equal peers - no client/server distinction
+- ✨ **True P2P**: All agents are equal peers
 - 🚀 **UDP Transport**: Connectionless, low-latency peer communication
 - 📡 **Auto-Discovery**: Agents find each other via UDP broadcast  
 - 🎯 **Topic Routing**: Publish/subscribe with wildcard matching
