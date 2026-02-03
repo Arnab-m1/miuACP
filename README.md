@@ -748,7 +748,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Issues**: [GitHub Issues](https://github.com/Arnab-m1/miuACP/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/Arnab-m1/miuACP/discussions)
-- **Email**: hello@arnab.wiki
+- **Email**: arnabb@duck.com
 - **Repository**: [https://github.com/Arnab-m1/miuACP](https://github.com/Arnab-m1/miuACP)
 
 ---
