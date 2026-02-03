@@ -1,0 +1,19 @@
+# Core dependencies
+cbor2>=1.0.0
+rich>=13.0.0
+
+# Optional dependencies for full features
+cryptography>=41.0.0
+PyJWT>=2.8.0
+paho-mqtt>=1.6.1
+aiocoap>=0.4.7
+prometheus-client>=0.17.0
+
+# Development dependencies (install with pip install -e ".[dev]")
+# pytest>=7.0.0
+# pytest-asyncio>=0.21.0
+# pytest-cov>=4.0.0
+# black>=23.0.0
+# isort>=5.12.0
+# flake8>=6.0.0
+# mypy>=1.0.0
